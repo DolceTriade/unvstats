@@ -35,7 +35,7 @@ import MySQLdb
 from internals.log_parse import Parser
 from internals.data_calc import Calculator
 from internals.skill_calc import Skills
-from internals.pk3_read import Reader
+from internals.dpk_read import Reader
 
 # Config
 from config import CONFIG
@@ -46,7 +46,7 @@ class Unvstats:
 	def Main(self):
 		# Internal datas
 		self.games_log         = CONFIG['GAMES_LOG']
-		self.pk3_dir           = CONFIG['PK3_DIR']
+		self.dpk_dir           = CONFIG['DPK_DIR']
 		self.calconly          = False
 		self.pk3only           = False
 		self.parseonly         = False
@@ -59,7 +59,7 @@ class Unvstats:
 
 		# Check for command line arguments
 		self.Check_command_line_arguments()
-							
+
 		# Connect to MySQL
 		self.MySQL_connect()
 
@@ -72,7 +72,7 @@ class Unvstats:
 		# Read pk3 map files
 		if self.calconly == False and self.logsonly == False:
 			pk3reader = Reader()
-			pk3reader.Main(self.dbc, self.Check_map_in_database, self.pk3_dir, None)
+			pk3reader.Main(self.dbc, self.Check_map_in_database, self.dpk_dir, None)
 			if self.pk3only == True:
 				return
 
@@ -194,7 +194,7 @@ class Unvstats:
 					self.games_log  = arg_data[1]
 					self.static_log = True
 				elif arg_data[0] == '--pk3':
-					self.pk3_dir = arg_data[1]
+					self.dpk_dir = arg_data[1]
 				elif arg_data[0] == '--map':
 					self.one_pk3 = arg_data[1]
 				elif arg_data[0] == '--db':

@@ -54,7 +54,7 @@ def dpkg_version_cmp(x, y):
 """ Class: Reader """
 class Reader:
 	""" Init Reader """
-	def Main(self, dbc, Check_map_in_database, pk3_dir, one_pk3):
+	def Main(self, dbc, Check_map_in_database, dpk_dir, one_dpk):
 		# Regular expressions
 		self.RE_FILESCAN = re.compile("^(levelshots|scripts)/(.+)\.(png|jpg|webp|tga|arena|crn)$")
 		self.RE_ARENA    = re.compile("longname\s*\"(.*?)\"")
@@ -64,44 +64,44 @@ class Reader:
 
 		# Internal data
 		self.dbc     = dbc
-		self.pk3_dir = pk3_dir
+		self.dpk_dir = dpk_dir
 
-		# one pk3
-		if one_pk3 != None:
-			if os.path.isfile(one_pk3) and one_pk3.endswith('.pk3'):
-				print "Reading " + one_pk3 + "..."
-				self.Scan_PK3(one_pk3)
+		# one dpk
+		if one_dpk != None:
+			if os.path.isfile(one_dpk) and one_dpk.endswith('.dpk'):
+				print "Reading " + one_dpk + "..."
+				self.Scan_dpk(one_dpk)
 			else:
-				print "file not found, or not a .pk3"
+				print "file not found, or not a .dpk"
 			return;
-	
-		# Check the directory	
-		if not os.path.isdir(self.pk3_dir):
-			sys.exit("PK3 directory does not exist")
 
-		pk3s = [i for i in os.listdir(self.pk3_dir) if re.match('^map-[^_]+_.*\.pk3$', i)]
-		pk3s.sort(cmp=lambda x,y: dpkg_version_cmp(x[:-4], y[:-4]))
+		# Check the directory
+		if not os.path.isdir(self.dpk_dir):
+			sys.exit("dpk directory does not exist")
+
+		dpks = [i for i in os.listdir(self.dpk_dir) if re.match('^map-[^_]+_.*\.dpk$', i)]
+		dpks.sort(cmp=lambda x,y: dpkg_version_cmp(x[:-4], y[:-4]))
 
 		# Loop through all files
-		for singlefile in pk3s:
+		for singlefile in dpks:
 			# Check if file is ok
-			if os.path.isfile(self.pk3_dir + '/' + singlefile) and re.match('^map-[^_]+_.*\.pk3$', singlefile):
+			if os.path.isfile(self.dpk_dir + '/' + singlefile) and re.match('^map-[^_]+_.*\.dpk$', singlefile):
 				print "Reading " + singlefile + " ..."
-				filepath = self.pk3_dir + '/' + singlefile
-				self.Scan_PK3(filepath)
+				filepath = self.dpk_dir + '/' + singlefile
+				self.Scan_dpk(filepath)
 
-	""" Scan a single PK3 file """
-	def Scan_PK3(self, filename):
+	""" Scan a single dpk file """
+	def Scan_dpk(self, filename):
 		try:
-			pk3 = zipfile.ZipFile(filename, 'r')
-			namelist = pk3.namelist()
+			dpk = zipfile.ZipFile(filename, 'r')
+			namelist = dpk.namelist()
 		except:
 			print "Error while reading " + filename
 			return
 
-		for pk3file in namelist:
+		for dpkfile in namelist:
 			# Check the file
-			match = self.RE_FILESCAN.search(pk3file)
+			match = self.RE_FILESCAN.search(dpkfile)
 			if match == None:
 				continue
 
@@ -112,13 +112,13 @@ class Reader:
 			extension = result[2]
 
 			if filetype == 'levelshots' and extension != 'arena':
-				self.Save_levelshot(pk3, mapname, extension)
+				self.Save_levelshot(dpk, mapname, extension)
 			elif filetype == 'scripts' and extension == 'arena':
-				self.Save_mapname(pk3, mapname)
+				self.Save_mapname(dpk, mapname)
 
 	""" Save a levelshot """
-	def Save_levelshot(self, pk3, mapname, extension):
-		data = pk3.read('levelshots/' + mapname + '.' + extension)
+	def Save_levelshot(self, dpk, mapname, extension):
+		data = dpk.read('levelshots/' + mapname + '.' + extension)
 		srcimg = None
 		dstimg = None
 		tmpname = None
@@ -188,8 +188,8 @@ class Reader:
 
 
 	""" Save a mapname """
-	def Save_mapname(self, pk3, mapname):
-		data = pk3.read('scripts/' + mapname + '.arena')
+	def Save_mapname(self, dpk, mapname):
+		data = dpk.read('scripts/' + mapname + '.arena')
 
 		# Check the data
 		match = self.RE_ARENA.search(data)
@@ -202,4 +202,3 @@ class Reader:
 		map_id    = self.Check_map_in_database(mapname)
 
 		self.dbc.execute("UPDATE `maps` SET `map_longname` = %s WHERE map_id = %s", (longname, map_id))
-		

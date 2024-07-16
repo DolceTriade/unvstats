@@ -13,7 +13,7 @@ CONFIG['MYSQL_HOSTNAME'] = ''
 CONFIG['MYSQL_USERNAME'] = ''
 
 # Password
-CONFIG['MYSQL_PASSWORD'] = '' 
+CONFIG['MYSQL_PASSWORD'] = ''
 
 # Database
 CONFIG['MYSQL_DATABASE'] = ''
@@ -24,16 +24,16 @@ CONFIG['MYSQL_DATABASE'] = ''
 CONFIG['GAMES_LOG'] = '/path/to/your/Unvanquished/main/games.log'
 
 # Directory which contains the PK3 files. Must be absolute.
-CONFIG['PK3_DIR'] = '/path/to/your/.Unvanquished/main'
+CONFIG['DPK_DIR'] = '/path/to/your/.Unvanquished/main'
 
 # ============================== #
 # END OF SCRIPT-MODIFIED SECTION #
 # ============================== #
 
 # Name/Partname of unnamed nick (case sensitive)
-# Lakitu7's patch have these cvars: 
+# Lakitu7's patch have these cvars:
 #       set g_newbieNumbering 1
-#       set g_newbieNamePrefix "UnnamedPlayer #" 
+#       set g_newbieNamePrefix "UnnamedPlayer #"
 #       eg: UnnamedPlayer #0 ~ UnnamedPlayer #1 ~ etc...
 # Don't change the default value if you don't have the Lakitu7's patch set
 CONFIG['UNNAMED_PLAYER']  = ( 'UnnamedPlayer', 'Newbie#' )
@@ -41,4 +41,3 @@ CONFIG['UNNAMED_PLAYER']  = ( 'UnnamedPlayer', 'Newbie#' )
 # ===================================== #
 # ADDITIONAL LOCAL SCRIPTING BELOW HERE #
 # ===================================== #
-
