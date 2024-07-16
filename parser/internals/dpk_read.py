@@ -2,7 +2,7 @@
 
 import sys, os, re, zipfile
 from PIL import Image
-import StringIO
+import io
 import tempfile
 
 def dpkg_version_cmp(x, y):
@@ -69,10 +69,10 @@ class Reader:
 		# one dpk
 		if one_dpk != None:
 			if os.path.isfile(one_dpk) and one_dpk.endswith('.dpk'):
-				print "Reading " + one_dpk + "..."
+				print("Reading " + one_dpk + "...")
 				self.Scan_dpk(one_dpk)
 			else:
-				print "file not found, or not a .dpk"
+				print("file not found, or not a .dpk")
 			return;
 
 		# Check the directory
@@ -86,7 +86,7 @@ class Reader:
 		for singlefile in dpks:
 			# Check if file is ok
 			if os.path.isfile(self.dpk_dir + '/' + singlefile) and re.match('^map-[^_]+_.*\.dpk$', singlefile):
-				print "Reading " + singlefile + " ..."
+				print("Reading " + singlefile + " ...")
 				filepath = self.dpk_dir + '/' + singlefile
 				self.Scan_dpk(filepath)
 
@@ -96,7 +96,7 @@ class Reader:
 			dpk = zipfile.ZipFile(filename, 'r')
 			namelist = dpk.namelist()
 		except:
-			print "Error while reading " + filename
+			print("Error while reading " + filename)
 			return
 
 		for dpkfile in namelist:
@@ -133,7 +133,7 @@ class Reader:
 				srcimg.file.write(data)
 				srcimg.file.flush()
 
-				print 'running dwebp %s -o %s' % (srcimg.name, dstimg.name)
+				print('running dwebp %s -o %s' % (srcimg.name, dstimg.name))
 				ret = os.spawnlp(os.P_WAIT, 'dwebp', 'dwebp', srcimg.name, '-o', dstimg.name)
 				if ret:
 					raise Exception('dwebp returned %d' % ret)
@@ -150,7 +150,7 @@ class Reader:
 				srcimg.file.write(data)
 				srcimg.file.flush()
 
-				print 'running crunch -fileformat png -outsamedir %s' % (srcimg.name)
+				print('running crunch -fileformat png -outsamedir %s' % (srcimg.name))
 				ret = os.spawnlp(os.P_WAIT, 'crunch', 'crunch', '-fileformat', 'png', '-outsamedir', srcimg.name)
 				if ret:
 					raise Exception('crunch returned %d' % ret)
@@ -159,13 +159,13 @@ class Reader:
 					data = tmpimg.read()
 				# now we have PNG
 
-			image = Image.open(StringIO.StringIO(data))
+			image = Image.open(io.StringIO(data))
 			image.thumbnail((256, 144), Image.BICUBIC)
-			levelshot = StringIO.StringIO()
+			levelshot = io.StringIO()
 			image.save(levelshot, 'JPEG')
 			levelshot_string = levelshot.getvalue()
 		except Exception as e:
-			print "Error while processing levelshot %s.%s: %s" % (mapname, extension, e)
+			print("Error while processing levelshot %s.%s: %s" % (mapname, extension, e))
 			if srcimg != None:
 				srcimg.file.close()
 			if dstimg != None:

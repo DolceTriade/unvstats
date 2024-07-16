@@ -86,7 +86,7 @@ class Unvstats:
 			self.calconly  = False
 			self.parseonly = False
 
-			print "clearing database and reparsing entire log..."
+			print("clearing database and reparsing entire log...")
 
 			# Clear the database
 			self.dbc.execute("TRUNCATE `builds`")
@@ -101,12 +101,12 @@ class Unvstats:
 			self.dbc.execute("TRUNCATE `state`")
 
 			if self.clear_ids == True:
-				print "clearing player ids..."
+				print("clearing player ids...")
 				self.dbc.execute("TRUNCATE `players`")
 				self.dbc.execute("TRUNCATE `skill`")
 				self.dbc.execute("TRUNCATE `nicks`")
 			else:
-				print "NOT clearing player ids, if this was desired use --clear-ids"
+				print("NOT clearing player ids, if this was desired use --clear-ids")
 				self.dbc.execute("""UPDATE `players` SET
 				                    player_games_played = DEFAULT,
 				                    player_first_game_id = DEFAULT,
@@ -160,19 +160,19 @@ class Unvstats:
 
 			if len(arg_data) == 1:
 				if arg_data[0] == '--help':
-					print "Usage of unvstats.py:"
-					print "----------------------------------------------------"
-					print "--help:        Print this help"
-					print "--reparse:     Reparses all archived logs"
-					print "--clear-ids:   Clear player ids when reparsing logs"
-					print "--calconly:    Only calculate data for MySQL"
-					print "--parseonly:   Only parse the log file (debugging)"
-					print "--pk3only:     Only fetch data from PK3s"
-					print "--log=<file>:  Parse another log than default"
-					print "--pk3=<dir>:   Read another dir than default"
-					print "--map=<file>:  Parse a single map pk3 for levelshot"
-					print "--db=<name>:   Specify database name"
-					print "--pw=<pass>:   Specify database password"
+					print("Usage of unvstats.py:")
+					print("----------------------------------------------------")
+					print("--help:        Print this help")
+					print("--reparse:     Reparses all archived logs")
+					print("--clear-ids:   Clear player ids when reparsing logs")
+					print("--calconly:    Only calculate data for MySQL")
+					print("--parseonly:   Only parse the log file (debugging)")
+					print("--pk3only:     Only fetch data from PK3s")
+					print("--log=<file>:  Parse another log than default")
+					print("--pk3=<dir>:   Read another dir than default")
+					print("--map=<file>:  Parse a single map pk3 for levelshot")
+					print("--db=<name>:   Specify database name")
+					print("--pw=<pass>:   Specify database password")
 					sys.exit(-1)
 
 				elif arg_data[0] == '--calconly':
@@ -216,7 +216,7 @@ class Unvstats:
 	""" Check if a specific map exists in the database """
 	def Check_map_in_database(self, mapname):
 		# Check internal dict first
-		if self.maps.has_key(mapname):
+		if mapname in self.maps:
 			return self.maps[mapname]
 
 		# Not in internal dict, check database

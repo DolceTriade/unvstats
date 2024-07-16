@@ -29,7 +29,7 @@ class Skills:
         # Update skills -----------------------------------
         self.dbc.execute("""SELECT game_id, game_length, game_winner FROM games WHERE game_id > COALESCE((SELECT MAX(`skill_game_id`) FROM `skill`), 0) AND game_winner NOT IN ('none','undefined')""");
         games = self.dbc.fetchall();
-        print "Computing skills for %s games." % (len(games));
+        print("Computing skills for %s games." % (len(games)));
 
         progress(games, lambda row: self.skillStats(self.dbc, row[0], totalSeconds(row[1]), row[2] == 'aliens', row[2] == 'humans'))
 
@@ -80,11 +80,11 @@ class Skills:
         # Perform the computation
         try:
             # Adjust the overall skill:
-            self.skillModule.AdjustPlayers(map(lambda p: p.total, players))
+            self.skillModule.AdjustPlayers([p.total for p in players])
             # Adjust the skill corresponding to the team each player was in:
-            self.skillModule.AdjustPlayers(map(lambda p: p.team, players))
+            self.skillModule.AdjustPlayers([p.team for p in players])
         except Exception as e:
-            print "Recomputation for game %s failed, please report to the develper.\n%s" % (game_id, e)
+            print("Recomputation for game %s failed, please report to the develper.\n%s" % (game_id, e))
 
         self.dbc.execute("SELECT player_id FROM players WHERE player_is_bot = TRUE")
         bots = self.dbc.fetchall()
@@ -116,8 +116,8 @@ class Skills:
 def loadModule(name, msg):
     try:
         return __import__(name, fromlist='*')
-    except ImportError, e:
-        print "%s\n%s" % (msg, str(e.args))
+    except ImportError as e:
+        print("%s\n%s" % (msg, str(e.args)))
         return None
 
 def totalSeconds(td):

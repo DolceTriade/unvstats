@@ -14,10 +14,10 @@ class Calculator:
 		self.dbc = dbc
 
 		# Here we do calculations, which are to heavy for real-time
-		print "Calculating data ..."
+		print("Calculating data ...")
 
 		# Update the game time factor
-		print " - Calculating game time factor"
+		print(" - Calculating game time factor")
 		self.dbc.execute("SELECT `game_id` FROM `games` ORDER BY `game_id` DESC LIMIT 0, 1")
 		result = self.dbc.fetchone()
 		if result != None:
@@ -41,7 +41,7 @@ class Calculator:
 		else:
 			player_count = len(players_to_update)
 
-		print " - Calculating efficiency for %d players" % (player_count)
+		print(" - Calculating efficiency for %d players" % (player_count))
 
 
 		# Start the progressbar

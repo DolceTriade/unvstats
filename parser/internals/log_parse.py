@@ -176,11 +176,11 @@ class Parser:
 
 	""" Update a player time count """
 	def Update_player_time(self, player_id, gametime):
-		if not self.players.has_key(player_id):
+		if player_id not in self.players:
 			return
 
 		mysql_id = self.players[player_id]['id']
-		if not self.game_players.has_key(mysql_id):
+		if mysql_id not in self.game_players:
 			return
 
 		t = self.Gametime_seconds( gametime )
@@ -234,17 +234,17 @@ class Parser:
 
 		# run through log file to find start and end positions
 
-		print "Looking for start and stop position within log file..."
+		print("Looking for start and stop position within log file...")
 
 		self.dbc.execute("SELECT `log_offset`, `log_filesize` FROM `state` WHERE `log_id` = 0")
 		result = self.dbc.fetchone()
 		if result != None:
 			logstart = result[0]
 			oldlength = result[1]
-			print "previous run stopped parsing at offset", logstart, "with length", oldlength
+			print("previous run stopped parsing at offset", logstart, "with length", oldlength)
 
 		if oldlength > filesize:
-			print "log file offset reset to zero due to truncated (rotated?) log file"
+			print("log file offset reset to zero due to truncated (rotated?) log file")
 			logstart = 0
 
 		# Start the progressbar
@@ -285,13 +285,13 @@ class Parser:
 
 		if logstop < logstart:
 			logstop = logstart
-			print "nothing new to parse."
+			print("nothing new to parse.")
 			return None
 
-		print "log parse offsets are", logstart, "to", logstop, "(", logstop - logstart, "bytes )"
+		print("log parse offsets are", logstart, "to", logstop, "(", logstop - logstart, "bytes )")
 
 		# Everything OK, parse the file to the database
-		print "Parsing logfile ..."
+		print("Parsing logfile ...")
 
 		# Start the progressbar
 		try:
@@ -496,7 +496,7 @@ class Parser:
 		   player['time_spec'], player['time_alien'], player['time_human']))
 
 		# Non-bot player has spent time on a team => game isn't empty
-		if not self.bots.has_key(player_id) and (player['time_alien'] > 0 or player['time_human'] > 0):
+		if player_id not in self.bots and (player['time_alien'] > 0 or player['time_human'] > 0):
                         self.game_is_empty = False
 
 		self.Player_Reset(player_id, player['joins'])
@@ -661,9 +661,9 @@ class Parser:
 		score     = result[0]
 		player_id = result[2]
 
-		if self.players.has_key(player_id):
+		if player_id in self.players:
 			player_mysql_id = self.players[player_id]['id']
-			if self.game_players.has_key(player_mysql_id):
+			if player_mysql_id in self.game_players:
 				self.game_players[player_mysql_id]['score'] = score
 
 	""" A client connects """
@@ -734,7 +734,7 @@ class Parser:
                         self.bots[mysql_id] = True
 
 		# If the player wasn't in the current game, we set his gamecount up by one
-		if not self.game_players.has_key(mysql_id):
+		if mysql_id not in self.game_players:
 			self.Player_Reset(mysql_id, 1)
 		else:
 			self.game_players[mysql_id]['joins'] += 1;
@@ -750,7 +750,7 @@ class Parser:
 		player_id = result[0]
 
 		# Remove the player from internal list
-		if self.players.has_key(player_id):
+		if player_id in self.players:
 			if self.game_exit == None:
 				self.Update_player_time(player_id, gametime)
 
@@ -762,7 +762,7 @@ class Parser:
 			#	self.Log_PlayerSingleUpdate(mysql_player_id, self.game_players[mysql_player_id])
 
 			# only delete if not a bot -- bots are handled as a single player
-			if not self.bots.has_key(mysql_player_id):
+			if mysql_player_id not in self.bots:
 				del self.players[player_id]
 
 	""" A client renames """
@@ -782,7 +782,7 @@ class Parser:
 		else:
 			player_name = result[2]
 
-		if not self.players.has_key(player_id):
+		if player_id not in self.players:
 			return
 
 		if self.Player_is_unnamed(player_name_uncolored):
@@ -791,7 +791,7 @@ class Parser:
 		mysql_id = self.players[player_id]['id']
 
 		# Renaming of bots is ignored
-		if not self.bots.has_key(mysql_id):
+		if mysql_id not in self.bots:
 			return
 
 		# Add the new nick for this TJW player
@@ -822,7 +822,7 @@ class Parser:
 		player_id    = result[0]
 		player_team  = result[1]
 
-		if self.players.has_key(player_id):
+		if player_id in self.players:
 			self.Update_player_time(player_id, gametime)
 			self.players[player_id]['team'] = player_team
 
@@ -846,7 +846,7 @@ class Parser:
 		if len(message) > 255:
 			message = message[0:255]
 
-		if player_id == '-1' or self.players.has_key(player_id):
+		if player_id == '-1' or player_id in self.players:
 			if mode == 'team':
 				if player_id == '-1':
 					channel = 'spectator'
@@ -864,12 +864,12 @@ class Parser:
 				                    VALUES (%s, %s, %s, 0, %s)""", (self.game_id, gametime, channel, message))
 			else:
 				mysql_player_id = self.players[player_id]['id']
-				if self.game_players.has_key(mysql_player_id):
+				if mysql_player_id in self.game_players:
 					self.dbc.execute("""INSERT INTO `says` (`say_game_id`, `say_gametime`, `say_mode`, `say_player_id`, `say_message`)
 					                    VALUES (%s, %s, %s, %s, %s)""", (self.game_id, gametime, channel, mysql_player_id, message))
 
 				# Non-bot player has said something => game isn't empty
-				if not self.bots.has_key(mysql_player_id):
+				if mysql_player_id not in self.bots:
 					self.game_is_empty = False;
 
 	""" A kill was done """
@@ -892,7 +892,7 @@ class Parser:
 		        player_assist_team = result[4]
 
 		# Check weapon
-		if self.weapons.has_key(weapon_constant):
+		if weapon_constant in self.weapons:
 			# Weapon is known
 			weapon_id = self.weapons[weapon_constant]
 		else:
@@ -904,12 +904,12 @@ class Parser:
 			# This is not a player entity, so we take 0 as MySQL value
 			player_source_mysql_id = 0
 			player_source_team     = None
-		elif self.players.has_key(player_source_id):
+		elif player_source_id in self.players:
 			# The player is in the internal list
 			player_source_mysql_id = self.players[player_source_id]['id']
 
 			# Get player's team
-			if self.players[player_source_id].has_key('team'):
+			if 'team' in self.players[player_source_id]:
 				player_source_team = self.players[player_source_id]['team']
 			else:
 				player_source_team = None
@@ -918,12 +918,12 @@ class Parser:
 			return
 
 		# Check target player
-		if self.players.has_key(player_target_id):
+		if player_target_id in self.players:
 			# The player is in the internal list
 			player_target_mysql_id = self.players[player_target_id]['id']
 
 			# Get player's team
-			if self.players[player_target_id].has_key('team'):
+			if 'team' in self.players[player_target_id]:
 				player_target_team = self.players[player_target_id]['team']
 			else:
 				player_target_team = None
@@ -933,7 +933,7 @@ class Parser:
 
 		# Check assistant player
 		if player_assist_id != None:
-			if self.players.has_key(player_assist_id):
+			if player_assist_id in self.players:
 				# The player is in the internal list
 				player_assist_mysql_id = self.players[player_assist_id]['id']
 			else:
@@ -965,7 +965,7 @@ class Parser:
 			                    VALUES (%s, %s, %s, %s, %s, %s)""", (self.game_id, gametime, killtype, player_source_mysql_id, player_target_mysql_id, weapon_id))
 
 		# Update the internal list
-		if self.game_players.has_key(player_source_mysql_id):
+		if player_source_mysql_id in self.game_players:
 			if killtype == 'team':
 				self.game_players[player_source_mysql_id]['teamkills'] += 1
 				if player_source_team == 'alien':
@@ -979,7 +979,7 @@ class Parser:
 				else:
 					self.game_players[player_source_mysql_id]['kills_human'] += 1
 
-		if player_assist_id != None and self.game_players.has_key(player_assist_mysql_id):
+		if player_assist_id != None and player_assist_mysql_id in self.game_players:
 			if killtype == 'team':
 				self.game_players[player_source_mysql_id]['enemyassists'] += 1
 				if player_source_team == 'alien':
@@ -993,7 +993,7 @@ class Parser:
 				else:
 					self.game_players[player_source_mysql_id]['assists_human'] += 1
 
-		if self.game_players.has_key(player_target_mysql_id):
+		if player_target_mysql_id in self.game_players:
 			self.game_players[player_target_mysql_id]['deaths'] += 1
 			if killtype == 'world':
 				if player_target_team == 'alien':
@@ -1037,13 +1037,13 @@ class Parser:
 		if player_id == '1022':
 			# The player is <world>, so we take 0 as MySQL value
 			player_mysql_id = 0
-		elif self.players.has_key(player_id):
+		elif player_id in self.players:
 			player_mysql_id = self.players[player_id]['id']
 		else:
 			return
 
 		# check building
-		if self.buildings.has_key(building_constant):
+		if building_constant in self.buildings:
 			building_id = self.buildings[building_constant]
 		else:
 			return
@@ -1067,19 +1067,19 @@ class Parser:
 		if player_id == '1022':
 			# The player is <world>, so we take 0 as MySQL value
 			player_mysql_id = 0
-		elif self.players.has_key(player_id):
+		elif player_id in self.players:
 			player_mysql_id = self.players[player_id]['id']
 		else:
 			return
 
 		# check building
-		if self.buildings.has_key(building_constant):
+		if building_constant in self.buildings:
 			building_id = self.buildings[building_constant]
 		else:
 			return
 
 		# Check weapon
-		if self.weapons.has_key(weapon_constant):
+		if weapon_constant in self.weapons:
 			# Weapon is known
 			weapon_id = self.weapons[weapon_constant]
 		else:
@@ -1108,11 +1108,11 @@ class Parser:
 		victim_mysql_id = 0;
 		victim_id = None;
 		
-		if not self.players.has_key(player_id):
+		if player_id not in self.players:
 			return
 
 		player_mysql_id = self.players[player_id]['id']
-		if not self.game_players.has_key(player_mysql_id):
+		if player_mysql_id not in self.game_players:
 			return
 
 		if team == 'team' and self.players[player_id]['team'] != 'spectator':
@@ -1121,7 +1121,7 @@ class Parser:
 			team = 'public'
 
 		if votetype == 'denybuild' or votetype == 'allowbuild' or votetype == 'mute' or votetype == 'unmute' or votetype == 'speclock' or votetype == 'specunlock':
-			if self.players.has_key(votearg1):
+			if votearg1 in self.players:
 				victim_id = votearg1
 		elif votetype == 'ban':
 			votetype = 'kick'
@@ -1143,7 +1143,7 @@ class Parser:
 			elif votearg1 == 'del':
 				votetype = 'kickbots'
 
-		if victim_id != None and self.players[victim_id].has_key('id'):
+		if victim_id != None and 'id' in self.players[victim_id]:
 			victim_mysql_id = self.players[victim_id]['id']
 			votearg1 = None
 
@@ -1174,7 +1174,7 @@ class Parser:
 		if team == 'global':
 			team = 'public'
 
-		if not self.vote.has_key(team):
+		if team not in self.vote:
 			return
 
 		self.dbc.execute("""UPDATE `votes` SET
@@ -1199,6 +1199,6 @@ class Parser:
             self.dbc.execute("SELECT `player_qkey` FROM `players` WHERE `player_qkey` NOT LIKE 'SHA|%'")
             rows = self.dbc.fetchall()
             if len(rows) > 0:
-		print "Hashing QKEYs ..."
+		print("Hashing QKEYs ...")
                 for row in rows:
                     self.dbc.execute("UPDATE `players` SET `player_qkey` = %s WHERE `player_qkey` = %s", (self.hashqkey(row[0]), row[0]))
