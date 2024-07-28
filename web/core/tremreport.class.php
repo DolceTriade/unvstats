@@ -38,9 +38,9 @@ class TremulousReporter {
           "name"  => $result[3]
         );
 
-        if ($server_vars['P']{$key-1} == 2)
+        if ($server_vars['P'][$key-1] == 2)
           $humans[] = $pinfo;
-        elseif ($server_vars['P']{$key-1} == 1)
+        elseif ($server_vars['P'][$key-1] == 1)
           $aliens[] = $pinfo;
         else
           $specs[] = $pinfo;
