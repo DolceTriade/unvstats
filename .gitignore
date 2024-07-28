@@ -2,3 +2,4 @@
 *.swp
 parser/config.py
 web/core/config.inc.php
+setup.state

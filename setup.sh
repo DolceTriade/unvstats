@@ -197,7 +197,7 @@ sed -e '/CONFIG.*MYSQL_HOSTNAME/ s!= .*$!= '"'$(Quote "$MYSQL_HOST")'"'!g;
 	/CONFIG.*MYSQL_PASSWORD/ s!= .*$!= '"'$(Quote "$MYSQL_PASS")'"'!g;
 	/CONFIG.*MYSQL_DATABASE/ s!= .*$!= '"'$(Quote "$MYSQL_NAME")'"'!g;
 	/CONFIG.*GAMES_LOG/      s!= .*$!= '"'$(Quote "$PATH_LOG")'"'!g;
-	/CONFIG.*PK3_DIR/        s!= .*$!= '"'$(Quote "$PATH_MAPS")'"'!g;
+	/CONFIG.*DPK_DIR/        s!= .*$!= '"'$(Quote "$PATH_MAPS")'"'!g;
 ' <"$PARSER_CONFIG.default" >"$PARSER_CONFIG"
 
 WEB_CONFIG="web/core/config.inc.php"
