@@ -5,7 +5,6 @@
  *
  * For license and version information, see /index.php
  */
-
 $calculation_start = microtime(true);
 
 if (function_exists('locale_set_default'))
@@ -23,13 +22,13 @@ require_once dirname(__FILE__).'/tiny_templating.class.php';
 require_once dirname(__FILE__).'/adodb/adodb-exceptions.inc.php';
 require_once dirname(__FILE__).'/adodb/adodb.inc.php';
 require_once dirname(__FILE__).'/pagelister/PageLister.class.php';
-
 // Connect to MySQL
 try {
   $db = NewADOConnection('mysql');
   $db->Connect(MYSQL_HOSTNAME, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
   $db->Execute('SET time_zone = `+00:00`');
 } catch (exception $e) {
+  echo($e);
   die;
 }
 

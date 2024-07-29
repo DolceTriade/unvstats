@@ -365,7 +365,7 @@ EOF;
                              array($map_id));
 
         // Process the data
-        if ($wins['mapstat_alien_wins'] + $wins['mapstat_human_wins'] + $wins['ties'] > 0) {
+        if (($wins['mapstat_alien_wins'] ?? 0) + ($wins['mapstat_human_wins'] ?? 0) + ($wins['ties'] ?? 0) > 0) {
             $alien = $wins['mapstat_alien_wins'];
             $human = $wins['mapstat_human_wins'];
             $tie   = $wins['ties'];

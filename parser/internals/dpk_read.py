@@ -72,9 +72,9 @@ class Reader:
     def Main(self, dbc, Check_map_in_database, dpk_dir, one_dpk):
         # Regular expressions
         self.RE_FILESCAN = re.compile(
-            "^(levelshots|scripts)/(.+)\.(png|jpg|webp|tga|arena|crn)$"
+            R"^meta/([^/]+)/(.+)\.(png|jpg|webp|tga|arena|crn)$"
         )
-        self.RE_ARENA = re.compile('longname\s*"(.*?)"')
+        self.RE_ARENA = re.compile(R'longname\s*"(.*?)"')
 
         # Localize parents function
         self.Check_map_in_database = Check_map_in_database
@@ -97,7 +97,7 @@ class Reader:
             sys.exit("dpk directory does not exist")
 
         dpks = [
-            i for i in os.listdir(self.dpk_dir) if re.match("^map-[^_]+_.*\.dpk$", i)
+            i for i in os.listdir(self.dpk_dir) if re.match(R"^map-[^_]+_.*\.dpk$", i)
         ]
         dpks.sort(
             key=functools.cmp_to_key(lambda x, y: dpkg_version_cmp(x[:-4], y[:-4]))
@@ -107,7 +107,7 @@ class Reader:
         for singlefile in dpks:
             # Check if file is ok
             if os.path.isfile(self.dpk_dir + "/" + singlefile) and re.match(
-                "^map-[^_]+_.*\.dpk$", singlefile
+                R"^map-[^_]+_.*\.dpk$", singlefile
             ):
                 print("Reading " + singlefile + " ...")
                 filepath = self.dpk_dir + "/" + singlefile
@@ -131,24 +131,25 @@ class Reader:
 
             # The file is something we want, save it
             result = match.groups()
-            filetype = result[0]
+            mapdir = result[0]
             mapname = result[1]
             extension = result[2]
 
-            if filetype == "levelshots" and extension != "arena":
+            if mapname == mapdir and extension != "arena":
                 self.Save_levelshot(dpk, mapname, extension)
-            elif filetype == "scripts" and extension == "arena":
+            elif extension == "arena":
                 self.Save_mapname(dpk, mapname)
 
     """ Save a levelshot """
 
     def Save_levelshot(self, dpk, mapname, extension):
-        data = dpk.read("levelshots/" + mapname + "." + extension)
+        data = dpk.read("meta/%s/%s.%s" % (mapname, mapname, extension))
         srcimg = None
         dstimg = None
         tmpname = None
 
         try:
+            img = None
             if extension == "webp":
                 # We need to convert to PNG: use dwebp
                 # This is expected to break on Windows (or maybe any non-POSIX)
@@ -165,8 +166,7 @@ class Reader:
                 if ret:
                     raise Exception("dwebp returned %d" % ret)
 
-                dstimg.file.seek(0)
-                data = dstimg.file.read()
+                img = dstimg.name
                 # now we have PNG
             elif extension == "crn":
                 # We need to convert to PNG: use crunch
@@ -189,19 +189,23 @@ class Reader:
                 )
                 if ret:
                     raise Exception("crunch returned %d" % ret)
-
-                with open(tmpname, "rb") as tmpimg:
-                    data = tmpimg.read()
+                img = tmpname
                 # now we have PNG
+            else:  # Hope that its something Pillow can read
+                dstimg = tempfile.NamedTemporaryFile(suffix="." + extension)
+                dstimg.file.write(data)
+                dstimg.file.flush()
+                img = dstimg.name
 
-            image = Image.open(io.StringIO(data))
+            print(img)
+            image = Image.open(str(img))
             image.thumbnail((256, 144), Image.BICUBIC)
-            levelshot = io.StringIO()
+            levelshot = io.BytesIO()
             image.save(levelshot, "JPEG")
             levelshot_string = levelshot.getvalue()
         except Exception as e:
             print(
-                "Error while processing levelshot %s.%s: %s" % (mapname, extension, e)
+                "Error while processing levelshot %s.%s" % (mapname, extension)
             )
             if srcimg != None:
                 srcimg.file.close()
@@ -209,7 +213,7 @@ class Reader:
                 dstimg.file.close()
             if tmpname != None:
                 os.unlink(tmpname)
-            return
+            raise e
 
         if srcimg != None:
             srcimg.file.close()
@@ -229,10 +233,10 @@ class Reader:
     """ Save a mapname """
 
     def Save_mapname(self, dpk, mapname):
-        data = dpk.read("scripts/" + mapname + ".arena")
+        data = dpk.read("meta/%s/%s.arena" % (mapname, mapname))
 
         # Check the data
-        match = self.RE_ARENA.search(data)
+        match = self.RE_ARENA.search(data.decode())
         if match == None:
             return
 

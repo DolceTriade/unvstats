@@ -48,18 +48,18 @@ class Parser:
 
     """ Init Parser """
 
-    def Main(self, dbc, Check_map_in_database, Add_player_to_update, games_log):
+    def __init__(self):
         # Regular expressions
         # MM:SS LOGTYPE: data
         self.RE_LOGTYPE = re.compile("^[ ]*([0-9]+):([0-9]{2}) ([^:]+):[ ]*")
 
         self.RE_GAMETIME = re.compile("([0-9]+):([0-9]{2}):([0-9]{2})")
 
-        self.RE_UNCOLOR_NAME = re.compile("\\^[*0-o]")  # need to handle ^^ separately
+        self.RE_UNCOLOR_NAME = re.compile(R"\^([0-9A-Oa-o]|#[A-Fa-f0-9]{6}|\*)")  # need to handle ^^ separately
 
         # ClientConnect: ID [IP] (GUID) "NAME" "COLORNAME"
         self.RE_CONNECT = re.compile(
-            '^([0-9]+) \\[([^\\]]*)\\] \\(([^\\)]+)\\) "([^"]*)"(?: ")?([^"]+)?"?( \[BOT\])?$'
+            R'^([0-9]+) \[([^\]]*)\] \(([^\)]+)\) "([^"]*)"(?: ")?([^"]+)?"?( \[BOT\])?$'
         )
 
         # ClientDisconnect: ID [ip] (guid) "name"
@@ -76,7 +76,7 @@ class Parser:
         self.RE_CHANGETEAM = re.compile("^([0-9]+) (alien|human|spectator): (.+)$")
 
         # Exit: RESULT MISC
-        self.RE_EXIT = re.compile("^(Aliens|Humans|Timelimit|Evacuation).*\.$")
+        self.RE_EXIT = re.compile(R"^(Aliens|Humans|Timelimit|Evacuation).*\.$")
 
         # score: SCORE  ping: PING  client: ID NAME
         self.RE_SCORE = re.compile("^([0-9]+)  ping: ([0-9]+)  client: ([0-9]+) (.+)$")
@@ -117,6 +117,9 @@ class Parser:
             "^(global|alien|human) (pass|fail) ([0-9]+) ([0-9]+) ([0-9]+)(?: [0-9]+)?$"
         )
 
+
+
+    def Main(self, dbc, Check_map_in_database, Add_player_to_update, games_log):
         # Localize parents function
         self.Check_map_in_database = Check_map_in_database
         self.Add_player_to_update = Add_player_to_update
@@ -184,10 +187,10 @@ class Parser:
 
     """ Remove colors from string """
 
-    def Remove_colors(self, str):
-        str.replace("^^", "\n")  # \n Can't Happen in names, and we want ^^ → ^
-        str = re.sub(self.RE_UNCOLOR_NAME, "", str)
-        return str.replace("\n", "^")
+    def Remove_colors(self, s):
+        s = s.replace("^^", "\n")  # \n Can't Happen in names, and we want ^^ → ^
+        s = re.sub(self.RE_UNCOLOR_NAME, "", s)
+        return s.replace("\n", "^")
 
     def Player_is_unnamed(self, name):
         for part in CONFIG["UNNAMED_PLAYER"]:

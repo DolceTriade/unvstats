@@ -22,10 +22,8 @@
  * @package Tremstats
  * @version 0.6.0
  */
-
 require_once 'core/init.inc.php';
 require_once 'core/tremreport.class.php';
-
 // Get current data
 $reporter      = new TremulousReporter(SERVER_ADDRESS);
 $server_status = $reporter->getStatus();

@@ -5,7 +5,7 @@
  *
  * For license and version information, see /index.php
  */
-
+#[AllowDynamicProperties]
 class tiny_templating {
   /**
    * Template to use
@@ -13,21 +13,21 @@ class tiny_templating {
    * @var string
    */
   private $template;
-  
+
   /**
    * Skin to use
    *
    * @var string
    */
   private $skin;
-  
+
   /**
    * Assigned variables
    *
    * @var array
    */
   private $vars = array();
-  
+
   /**
    * Constructor function
    *
@@ -36,10 +36,10 @@ class tiny_templating {
    */
   function __construct($template, $skin) {
     $this->template = $template;
-    
+
     $this->skin = $skin;
   }
-  
+
   /**
    * Assign variables to the template
    *
@@ -49,7 +49,7 @@ class tiny_templating {
   public function assign ($var, $value) {
     $this->{$var} = $value;
   }
-  
+
   /**
    * Display a template
    *
@@ -58,7 +58,7 @@ class tiny_templating {
   public function display ($template) {
     include 'templates/'.$this->template.'/'.$template;
   }
-  
+
   /**
    * Generate the path to the CSS file
    *
@@ -67,7 +67,7 @@ class tiny_templating {
   private function css_file () {
     return htmlspecialchars('skins/'.$this->template.'/'.$this->skin.'/skin.css');
   }
-  
+
   /**
    * Generate the path to the images
    *

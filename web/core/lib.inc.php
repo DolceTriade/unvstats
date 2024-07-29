@@ -15,62 +15,78 @@ function AdoDB_Count_Handler ($query, $args) {
   return $entriesTotal;
 }
 
+enum ColorType {
+  case SINGLE;
+  case HEX;
+}
+
+function color_type_str($typ) {
+  switch ($typ) {
+    case ColorType::SINGLE:
+      return 'SINGLE';
+    case ColorType::HEX:
+      return 'HEX';
+  }
+  return 'UNKNOWN';
+}
+
+function get_color_type($str, $offs) {
+  $len = strlen($str);
+  if ($str[$offs] !== '^') return false;
+  if ($len > $offs + 7 &&
+      $str[$offs + 1] === '#' &&
+      ctype_xdigit(substr($str, $offs + 2, 6))) {
+    return ColorType::HEX;
+  }
+  if ($len > $offs + 1 && ord($str[$offs + 1]) >= ord('0') && ord(strtoupper($str[$offs + 1])) <= ord('O')) {
+    return ColorType::SINGLE;
+  }
+  error_log('s='.$str . ' ' . substr($str, $offs + 1, 6));
+  return false;
+}
+
 function replace_color_codes ($string) {
   // escape html reserved chars
   $string = htmlspecialchars($string, ENT_QUOTES);
-
-  // Search first token
-  $pos = strpos($string, '^');
-
-  // If there is no token, return the original string
-  if ($pos === false) return $string;
-
-  // Get first part
-  if ($pos === 0) {
-    $result = '';
-  } else {
-    $result = substr($string, 0, $pos);
-  }
-
-  // Loop through all tokens
+  $pos = $oldpos = 0;
+  $result = '';
   $color_open = false;
-  while ($pos !== false) {
-    $next = strpos($string, '^', $pos+1);
-    if ($next === false) {
-      $part = substr($string, $pos+1);
-    } else {
-      $part = substr($string, $pos+1, $next-$pos-1);
-    }
-
-    if (!$part) {
-      $result .= '^';
-      ++$pos;
-    } else {
-      // Get first character after the token
-      $num = substr($part, 0, 1);
-
-      if ($num == '*') {
-        // just ignore it
-      } else if (ord($num) >= 48 && ord($num) < 112) {
-        // valid colour control ('0' .. 'o')
-        $num = (ord($num) - 48) & 31;
-
-        if ($color_open) $result .= '</span>';
-
-        $result .= '<span class="quakecolor_'.$num.'">'.substr($part, 1);
-        $color_open = true;
-      } else {
-        // not valid, so include as a literal
-        $result .= '^'.$part;
+  while (true) {
+    $pos = strpos($string, "^", $oldpos);
+    if ($pos === false) {
+      if ($oldpos === 0) {
+        return $string;
       }
+      // Close previous tag and return the rest of the string.
+      $result .= substr($string, $oldpos);
+      if ($color_open) $result .= '</span>';
+      return $result;
     }
 
-    // Get next token
-    $pos = strpos($string, '^', $pos+1);
-  }
-  if ($color_open) $result .= '</span>';
+    $color_type = get_color_type($string, $pos);
+    error_log($string . ' ' . color_type_str($color_type));
+    if ($color_type === false) {
+      $result .= substr($string, $oldpos, $pos - $oldpos + 1);
+      $oldpos = $pos + 1;
+      continue;
+    }
 
-  return $result;
+    $result .= substr($string, $oldpos, $pos - $oldpos);
+
+    if ($color_open) {
+      $result .= '</span>';
+      $color_open = false;
+    }
+
+    if ($color_type === ColorType::SINGLE) {
+      $color_open = true;
+      $result .= '<span class="quakecolor_'.(31 - abs(ord(strtoupper($string[$pos + 1])) - ord('O'))).'">';
+      $oldpos = $pos + 2;
+    } else if ($color_type === ColorType::HEX) {
+      $result .= '<span style="color: '.substr($string, $pos+1, 7).';">';
+      $oldpos = $pos + 8;
+    }
+  }
 }
 
 function custom_sort ($sort_title, $sort_name) {
