@@ -15,7 +15,11 @@ define('VERSION', '0.3.0');
 define('CLIENT_IS_BOT', preg_match( '/apache|bot|catalog|cr[ao]wler|digg|https?:|facebook|feed|monitor|spider|syndication|yahoo/i', $_SERVER['HTTP_USER_AGENT'] ) ? true : false);
 define('CLIENT_IS_TEXT', preg_match( '/^(?:lynx|links|elinks|w3m)\b/i', $_SERVER['HTTP_USER_AGENT'] ) ? true : false);
 
-require_once dirname(__FILE__).'/config.inc.php';
+$config_file = getenv('UNVSTATS_WEB_CONFIG');
+if ($config_file === false || $config_file === '') {
+  $config_file = dirname(__FILE__).'/config.inc.php';
+}
+require_once $config_file;
 require_once dirname(__FILE__).'/lib.inc.php';
 require_once dirname(__FILE__).'/graphs.inc.php';
 require_once dirname(__FILE__).'/tiny_templating.class.php';
