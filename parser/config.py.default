@@ -23,8 +23,9 @@ CONFIG['MYSQL_DATABASE'] = ''
 # C:\\path\\to\\your\\games.log
 CONFIG['GAMES_LOG'] = '/path/to/your/Unvanquished/main/games.log'
 
-# Directory which contains the PK3 files. Must be absolute.
-CONFIG['DPK_DIR'] = '/path/to/your/.Unvanquished/main'
+# Directories which contain the PK3 files. Must be absolute.
+# A single string is still accepted for backward compatibility.
+CONFIG['DPK_DIR'] = ['/path/to/your/.Unvanquished/main']
 
 # ============================== #
 # END OF SCRIPT-MODIFIED SECTION #

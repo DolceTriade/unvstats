@@ -8,8 +8,9 @@
 
 require_once 'core/init.inc.php';
 
-$last_game  = $db->GetRow("SELECT game_id FROM games ORDER BY game_id DESC LIMIT 0, 1");
-$game_cutoff= $last_game['game_id'] - TRESHOLD_MAX_GAMES_PAUSED;
+$last_game = $db->GetRow("SELECT game_id FROM games ORDER BY game_id DESC LIMIT 0, 1");
+$last_game_id = isset($last_game['game_id']) ? (int)$last_game['game_id'] : 0;
+$game_cutoff = $last_game_id - TRESHOLD_MAX_GAMES_PAUSED;
 
 $custom_orders = array (
   'rank'           => 'player_rank',
@@ -25,7 +26,9 @@ $custom_orders = array (
 );
 $order = get_custom_sort($custom_orders, 'rank');
 
-$min_games = $db->GetRow("SELECT MAX(player_games_played) AS games FROM players")['games'] - TRESHOLD_MIN_GAMES_PLAYED;
+$max_games_row = $db->GetRow("SELECT MAX(player_games_played) AS games FROM players");
+$max_games = isset($max_games_row['games']) ? (int)$max_games_row['games'] : 0;
+$min_games = $max_games - TRESHOLD_MIN_GAMES_PLAYED;
 if ($min_games > TRESHOLD_MIN_GAMES_PLAYED)
     $min_games = TRESHOLD_MIN_GAMES_PLAYED;
 

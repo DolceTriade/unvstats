@@ -8,7 +8,7 @@
 <?php if (isset($this->server_status)) {
         if ($this->server_status === false) { ?>
     <p class="noserver">Server not reachable</p>
-<?php   } else { ?>
+<?php   } else if (!empty($this->running_map['map_id'])) { ?>
   <div class="split-table">
     <table>
       <colgroup>
@@ -139,6 +139,8 @@
       </tr>
     </tbody>
   </table>
+<?php   } else { ?>
+  <p class="noserver">No running map data available</p>
 <?php   }
       } else {
 ?>
@@ -250,6 +252,7 @@
     </thead>
 
     <tbody>
+<?php if (!empty($this->overview['most_played_map']['map_id'])) { ?>
       <tr>
         <td rowspan="5" class="levelshot">
           <img class="levelshot" alt="<?php echo htmlspecialchars($this->overview['most_played_map']['map_text_name'],ENT_QUOTES); ?>" src="_levelshot.php?map_id=<?php echo ($this->overview['most_played_map']['map_id']); ?>" />
@@ -276,6 +279,11 @@
         <td>Ties</td>
         <td><?php echo $this->overview['most_played_map']['ties']; ?></td>
       </tr>
+<?php } else { ?>
+      <tr class="emptylist">
+        <td colspan="4">No map statistics available</td>
+      </tr>
+<?php } ?>
     </tbody>
   </table>
 

@@ -220,6 +220,7 @@ class Unvstats:
     def MySQL_connect(self):
         # Try to connect to MySQL, else exit
         try:
+            print(CONFIG)
             self.db = MySQLdb.connect(
                 CONFIG["MYSQL_HOSTNAME"],
                 CONFIG["MYSQL_USERNAME"],
@@ -227,7 +228,8 @@ class Unvstats:
                 CONFIG["MYSQL_DATABASE"],
             )
             self.dbc = self.db.cursor()
-        except:
+        except Exception as e:
+            print(e)
             sys.exit("Connection to MySQL failed")
 
     """ Check if a specific map exists in the database """

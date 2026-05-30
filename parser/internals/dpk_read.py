@@ -81,7 +81,10 @@ class Reader:
 
         # Internal data
         self.dbc = dbc
-        self.dpk_dir = dpk_dir
+        if isinstance(dpk_dir, str):
+            self.dpk_dirs = [dpk_dir]
+        else:
+            self.dpk_dirs = list(dpk_dir)
 
         # one dpk
         if one_dpk != None:
@@ -92,26 +95,33 @@ class Reader:
                 print("file not found, or not a .dpk")
             return
 
-        # Check the directory
-        if not os.path.isdir(self.dpk_dir):
-            sys.exit("dpk directory does not exist")
+        if not self.dpk_dirs:
+            sys.exit("no dpk directories configured")
 
-        dpks = [
-            i for i in os.listdir(self.dpk_dir) if re.match(R"^map-[^_]+_.*\.dpk$", i)
-        ]
+        dpks = []
+        for dpk_dir in self.dpk_dirs:
+            if not os.path.isdir(dpk_dir):
+                sys.exit("dpk directory does not exist: " + dpk_dir)
+
+            for singlefile in os.listdir(dpk_dir):
+                if not re.match(R"^map-[^_]+_.*\.dpk$", singlefile):
+                    continue
+
+                filepath = os.path.join(dpk_dir, singlefile)
+                if os.path.isfile(filepath):
+                    dpks.append(filepath)
+
         dpks.sort(
-            key=functools.cmp_to_key(lambda x, y: dpkg_version_cmp(x[:-4], y[:-4]))
+            key=functools.cmp_to_key(
+                lambda x, y: dpkg_version_cmp(
+                    os.path.basename(x)[:-4], os.path.basename(y)[:-4]
+                )
+            )
         )
 
-        # Loop through all files
-        for singlefile in dpks:
-            # Check if file is ok
-            if os.path.isfile(self.dpk_dir + "/" + singlefile) and re.match(
-                R"^map-[^_]+_.*\.dpk$", singlefile
-            ):
-                print("Reading " + singlefile + " ...")
-                filepath = self.dpk_dir + "/" + singlefile
-                self.Scan_dpk(filepath)
+        for filepath in dpks:
+            print("Reading " + filepath + " ...")
+            self.Scan_dpk(filepath)
 
     """ Scan a single dpk file """
 

@@ -9,6 +9,7 @@
 
   escapePython = lib.replaceStrings ["\\" "'"] ["\\\\" "\\'"];
   escapePhp = escapePython;
+  pythonList = values: "[${lib.concatMapStringsSep ", " (value: "'${escapePython value}'") values}]";
 
   parserConfigDir = pkgs.runCommand "unvstats-parser-config" {} ''
         mkdir -p "$out"
@@ -24,7 +25,7 @@
     CONFIG['MYSQL_PASSWORD'] = open(os.environ.get('UNVSTATS_DB_PASSWORD_FILE', '${escapePython cfg.database.passwordFile}')).read().strip()
     CONFIG['MYSQL_DATABASE'] = '${escapePython cfg.database.name}'
     CONFIG['GAMES_LOG'] = '${escapePython cfg.parser.gamesLog}'
-    CONFIG['DPK_DIR'] = '${escapePython cfg.parser.dpkDir}'
+    CONFIG['DPK_DIR'] = ${pythonList cfg.parser.dpkDir}
     CONFIG['UNNAMED_PLAYER'] = ('UnnamedPlayer', 'Newbie#')
     EOF
   '';
@@ -154,8 +155,8 @@ in {
       };
 
       dpkDir = mkOption {
-        type = types.str;
-        description = "Absolute path to the directory containing map .dpk files.";
+        type = types.listOf types.str;
+        description = "Absolute paths to directories containing map .dpk files.";
       };
 
       extraArgs = mkOption {
@@ -392,8 +393,8 @@ in {
         "pm.max_spare_servers" = 4;
         "catch_workers_output" = "yes";
         "clear_env" = "no";
-        "env[UNVSTATS_WEB_CONFIG]" = webConfigFile;
-        "env[UNVSTATS_DB_PASSWORD_FILE]" = cfg.database.passwordFile;
+        "env[UNVSTATS_WEB_CONFIG]" = "${webConfigFile}";
+        "env[UNVSTATS_DB_PASSWORD_FILE]" = "${cfg.database.passwordFile}";
       };
     };
     services.nginx.virtualHosts = mkIf (cfg.web.enable && cfg.web.hostName != null) {
@@ -402,8 +403,8 @@ in {
         forceSSL = cfg.web.forceSSL;
         serverAliases = cfg.web.serverAliases;
         root = webRoot;
-        index = "index.php";
         locations."/" = {
+          index = "index.php";
           tryFiles = "$uri $uri/ /index.php?$query_string";
         };
         locations."~ \\.php$" = {

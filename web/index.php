@@ -63,8 +63,9 @@ $alien_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner
 $human_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner = 'humans'");
 $ties       = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner = 'tie' OR game_winner = 'draw'");
 
-$last_game  = $db->GetRow("SELECT game_id FROM games ORDER BY game_id DESC LIMIT 0, 1");
-$game_cutoff= $last_game['game_id'] - TRESHOLD_MAX_GAMES_PAUSED;
+$last_game = $db->GetRow("SELECT game_id FROM games ORDER BY game_id DESC LIMIT 0, 1");
+$last_game_id = isset($last_game['game_id']) ? (int)$last_game['game_id'] : 0;
+$game_cutoff = $last_game_id - TRESHOLD_MAX_GAMES_PAUSED;
 
 $top_player = $db->GetRow("SELECT player_id,
                                   player_name,
@@ -183,7 +184,7 @@ $overview['most_active_player'] = $most_active_player;
 $overview['top_score']          = $top_score;
 $overview['top_skill']          = $top_skill;
 
-$overview['most_played_map'] = $most_played_map;
+$overview['most_played_map'] = $most_played_map ?: null;
 
 // Assign variables to template
 if (!empty($server_status)) $tpl->assign('server_status', $server_status);
