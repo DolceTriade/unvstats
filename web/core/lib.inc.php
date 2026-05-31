@@ -41,7 +41,6 @@ function get_color_type($str, $offs) {
   if ($len > $offs + 1 && ord($str[$offs + 1]) >= ord('0') && ord(strtoupper($str[$offs + 1])) <= ord('O')) {
     return ColorType::SINGLE;
   }
-  error_log('s='.$str . ' ' . substr($str, $offs + 1, 6));
   return false;
 }
 
@@ -64,7 +63,6 @@ function replace_color_codes ($string) {
     }
 
     $color_type = get_color_type($string, $pos);
-    error_log($string . ' ' . color_type_str($color_type));
     if ($color_type === false) {
       $result .= substr($string, $oldpos, $pos - $oldpos + 1);
       $oldpos = $pos + 1;
@@ -218,6 +216,7 @@ function gameplay_stats_file_path($match_id) {
 
 function parse_gameplay_stats_file($path) {
   $samples = array();
+  $raw_events = array();
   $events = array();
   $match_id = '';
 
@@ -241,46 +240,55 @@ function parse_gameplay_stats_file($path) {
       continue;
     }
 
-    if (strpos($line, 'EVT ') === 0) {
-      $parts = preg_split('/\s+/', $line, 6);
-      if (count($parts) < 6) {
-        continue;
+    if (preg_match('/^EVT\s+([0-9]+)\s+(\S+)\s+([0-9]+)\s+(\S+)\s+(.+?)\s+([0-9]+)$/', $line, $matches)) {
+      $team = $matches[2];
+      if ($team === 'alien') {
+        $team = 'aliens';
+      } elseif ($team === 'human') {
+        $team = 'humans';
       }
 
-      $tail = $parts[5];
-      $last_space = strrpos($tail, ' ');
-      if ($last_space === false) {
-        continue;
-      }
-
-      $events[] = array(
-        't' => (int)$parts[1],
-        'team' => $parts[2],
-        'client' => (int)$parts[3],
-        'kind' => $parts[4],
-        'item' => trim(substr($tail, 0, $last_space)),
-        'cost' => (int)trim(substr($tail, $last_space + 1)),
+      $raw_events[] = array(
+        't' => (int)$matches[1],
+        'team' => $team,
+        'client' => (int)$matches[3],
+        'kind' => $matches[4],
+        'item' => trim($matches[5]),
+        'cost' => (int)$matches[6],
       );
       continue;
     }
 
-    $parts = preg_split('/\s+/', $line);
-    if (count($parts) !== 7) {
+    if (!preg_match('/^([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+)$/', $line, $matches)) {
       continue;
     }
 
     $samples[] = array(
-      't' => (int)$parts[0],
-      'aliens' => (int)$parts[1],
-      'humans' => (int)$parts[2],
-      'alien_net' => (int)$parts[3],
-      'human_net' => (int)$parts[4],
-      'alien_spent' => (int)$parts[5],
-      'human_spent' => (int)$parts[6],
+      't' => (int)$matches[1],
+      'aliens' => (int)$matches[2],
+      'humans' => (int)$matches[3],
+      'alien_net' => (int)$matches[4],
+      'human_net' => (int)$matches[5],
+      'alien_spent' => (int)$matches[6],
+      'human_spent' => (int)$matches[7],
     );
   }
 
   fclose($handle);
+
+  $cumulative = array(
+    'aliens' => 0,
+    'humans' => 0,
+  );
+  foreach ($raw_events as $event) {
+    if (array_key_exists($event['team'], $cumulative)) {
+      $cumulative[$event['team']] += $event['cost'];
+      $event['cumulative_spent'] = $cumulative[$event['team']];
+    } else {
+      $event['cumulative_spent'] = $event['cost'];
+    }
+    $events[] = $event;
+  }
 
   return array(
     'match_id' => $match_id,

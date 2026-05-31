@@ -42,7 +42,11 @@
     define('TREMSTATS_SKIN', '${escapePhp cfg.web.skin}');
     define('TREMSTATS_EPP', ${toString cfg.web.entriesPerPage});
     define('GAMEPLAY_STATS_DIR', '${
-      escapePhp (if cfg.web.gameplayStatsDir == null then "" else cfg.web.gameplayStatsDir)
+      escapePhp (
+        if cfg.web.gameplayStatsDir == null
+        then ""
+        else cfg.web.gameplayStatsDir
+      )
     }');
     define('TRESHOLD_MIN_GAMES_PLAYED', ${toString cfg.web.minGamesPlayed});
     define('TRESHOLD_MAX_GAMES_PAUSED', ${toString cfg.web.maxGamesPaused});

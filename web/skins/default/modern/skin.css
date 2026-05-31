@@ -173,10 +173,29 @@ svg .filler {
 
 svg .box,
 svg line,
-svg .line,
-svg .pie {
+svg .line {
   stroke: rgba(234, 247, 255, 0.72);
   fill: none;
+}
+
+svg .pie {
+  stroke: rgba(234, 247, 255, 0.32);
+}
+
+svg .pie.alien {
+  fill: var(--alien);
+}
+
+svg .pie.human {
+  fill: var(--human);
+}
+
+svg .pie.tied {
+  fill: #9aa7ba;
+}
+
+svg .pie.null {
+  fill: #152134;
 }
 
 body > header,
