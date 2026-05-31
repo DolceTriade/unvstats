@@ -146,4 +146,146 @@ function get_custom_sort ($custom_orders, $default_order) {
     }
   }
 }
+
+function session_include_bots() {
+  return !empty($_SESSION['include_bots']);
+}
+
+function set_include_bots_from_request() {
+  if (!isset($_GET['include_bots'])) {
+    if (!isset($_SESSION['include_bots'])) {
+      $_SESSION['include_bots'] = false;
+    }
+    return;
+  }
+
+  $_SESSION['include_bots'] = $_GET['include_bots'] === '1';
+}
+
+function player_bot_filter_sql($alias = 'players') {
+  if (session_include_bots()) {
+    return '1 = 1';
+  }
+
+  return sprintf('%s.`player_is_bot` = FALSE', $alias);
+}
+
+function game_nonempty_filter_sql($alias = 'games') {
+  return sprintf('%s.`game_is_empty` = FALSE', $alias);
+}
+
+function current_url_with_params($params = array()) {
+  $query = $_GET;
+  foreach ($params as $key => $value) {
+    if ($value === null) {
+      unset($query[$key]);
+    } else {
+      $query[$key] = $value;
+    }
+  }
+
+  $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+  $queryString = http_build_query($query);
+  if ($queryString === '') {
+    return $path;
+  }
+
+  return $path . '?' . $queryString;
+}
+
+function include_bots_toggle_url() {
+  return current_url_with_params(array(
+    'include_bots' => session_include_bots() ? '0' : '1',
+  ));
+}
+
+function gameplay_stats_file_path($match_id) {
+  if (!defined('GAMEPLAY_STATS_DIR') || GAMEPLAY_STATS_DIR === '') {
+    return null;
+  }
+
+  if ($match_id === null || $match_id === '') {
+    return null;
+  }
+
+  $path = rtrim(GAMEPLAY_STATS_DIR, '/').'/'.$match_id.'.log';
+  if (!is_file($path)) {
+    return null;
+  }
+
+  return $path;
+}
+
+function parse_gameplay_stats_file($path) {
+  $samples = array();
+  $events = array();
+  $match_id = '';
+
+  $handle = @fopen($path, 'r');
+  if ($handle === false) {
+    return null;
+  }
+
+  while (($raw = fgets($handle)) !== false) {
+    $line = trim($raw);
+    if ($line === '') {
+      continue;
+    }
+
+    if (strpos($line, '# MatchId:') === 0) {
+      $match_id = trim(substr($line, strlen('# MatchId:')));
+      continue;
+    }
+
+    if ($line[0] === '#') {
+      continue;
+    }
+
+    if (strpos($line, 'EVT ') === 0) {
+      $parts = preg_split('/\s+/', $line, 6);
+      if (count($parts) < 6) {
+        continue;
+      }
+
+      $tail = $parts[5];
+      $last_space = strrpos($tail, ' ');
+      if ($last_space === false) {
+        continue;
+      }
+
+      $events[] = array(
+        't' => (int)$parts[1],
+        'team' => $parts[2],
+        'client' => (int)$parts[3],
+        'kind' => $parts[4],
+        'item' => trim(substr($tail, 0, $last_space)),
+        'cost' => (int)trim(substr($tail, $last_space + 1)),
+      );
+      continue;
+    }
+
+    $parts = preg_split('/\s+/', $line);
+    if (count($parts) !== 7) {
+      continue;
+    }
+
+    $samples[] = array(
+      't' => (int)$parts[0],
+      'aliens' => (int)$parts[1],
+      'humans' => (int)$parts[2],
+      'alien_net' => (int)$parts[3],
+      'human_net' => (int)$parts[4],
+      'alien_spent' => (int)$parts[5],
+      'human_spent' => (int)$parts[6],
+    );
+  }
+
+  fclose($handle);
+
+  return array(
+    'match_id' => $match_id,
+    'samples' => $samples,
+    'events' => $events,
+  );
+}
 ?>

@@ -58,10 +58,10 @@ $running_map = $db->GetRow("SELECT map_id,
 endif;
 
 // Get saved data
-$games      = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner != 'undefined'");
-$alien_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner = 'aliens'");
-$human_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner = 'humans'");
-$ties       = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE game_winner = 'tie' OR game_winner = 'draw'");
+$games      = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE ".game_nonempty_filter_sql('games')." AND game_winner != 'undefined'");
+$alien_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE ".game_nonempty_filter_sql('games')." AND game_winner = 'aliens'");
+$human_wins = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE ".game_nonempty_filter_sql('games')." AND game_winner = 'humans'");
+$ties       = $db->GetRow("SELECT COUNT(*) AS count FROM games WHERE ".game_nonempty_filter_sql('games')." AND (game_winner = 'tie' OR game_winner = 'draw')");
 
 $last_game = $db->GetRow("SELECT game_id FROM games ORDER BY game_id DESC LIMIT 0, 1");
 $last_game_id = isset($last_game['game_id']) ? (int)$last_game['game_id'] : 0;

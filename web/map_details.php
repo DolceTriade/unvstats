@@ -44,8 +44,17 @@ $weapon_kills = $db->GetAll("SELECT COUNT(kill_id) AS weapon_count,
                                  FROM kills
                                  INNER JOIN weapons ON weapon_id = kill_weapon_id
                                  INNER JOIN games ON game_id = kill_game_id
+                                 INNER JOIN players AS victim ON kill_target_player_id = victim.player_id
+                                 LEFT JOIN players AS source ON kill_source_player_id = source.player_id
+                                 LEFT JOIN players AS assist ON kill_assist_player_id = assist.player_id
                                  WHERE game_map_id = ?
+                                       AND ".game_nonempty_filter_sql('games')."
                                        AND kill_type != 'team'
+                                       AND ".(session_include_bots()
+                                         ? "1 = 1"
+                                         : "victim.player_is_bot = FALSE
+                                            AND IFNULL(source.player_is_bot, FALSE) = FALSE
+                                            AND IFNULL(assist.player_is_bot, FALSE) = FALSE")."
                                  GROUP BY kill_weapon_id
                                  ORDER BY weapon_count DESC, weapon_name ASC",
                                  array($map_details['map_id']));
@@ -56,9 +65,12 @@ $destroyed_structures = $db->GetAll("SELECT COUNT(destruct_id) AS building_count
                                             building_icon
                                      FROM destructions
                                      INNER JOIN games ON game_id = destruct_game_id
+                                     INNER JOIN players ON destruct_player_id = player_id
                                      INNER JOIN buildings ON building_id = destruct_building_id
                                      INNER JOIN weapons ON weapon_id = destruct_weapon_id
                                      WHERE game_map_id = ?
+                                           AND ".game_nonempty_filter_sql('games')."
+                                           AND ".player_bot_filter_sql('players')."
                                            AND building_team != weapon_team
                                            AND weapon_constant != 'MOD_NOCREEP'
                                      GROUP BY destruct_building_id
@@ -69,9 +81,12 @@ $built_structures = $db->GetAll("SELECT COUNT(build_id) AS building_count,
                                             building_name,
                                             building_icon
                                      FROM builds
+                                     INNER JOIN players ON build_player_id = player_id
                                      INNER JOIN buildings ON building_id = build_building_id
                                      INNER JOIN games ON game_id = build_game_id
                                      WHERE game_map_id = ?
+                                           AND ".game_nonempty_filter_sql('games')."
+                                           AND ".player_bot_filter_sql('players')."
                                      GROUP BY build_building_id
                                      ORDER BY building_count DESC, building_name ASC",
                                      array($map_details['map_id']));
@@ -80,7 +95,10 @@ $votes_called = $db->GetAll("SELECT COUNT(vote_id) AS vote_count,
                                             vote_type
                                      FROM votes
                                      INNER JOIN games ON game_id = vote_game_id
+                                     INNER JOIN players ON vote_player_id = player_id
                                      WHERE game_map_id = ?
+                                           AND ".game_nonempty_filter_sql('games')."
+                                           AND ".player_bot_filter_sql('players')."
                                      GROUP BY vote_type
                                      ORDER BY vote_count DESC, vote_type ASC",
                                      array($map_details['map_id']));

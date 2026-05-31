@@ -220,7 +220,6 @@ class Unvstats:
     def MySQL_connect(self):
         # Try to connect to MySQL, else exit
         try:
-            print(CONFIG)
             self.db = MySQLdb.connect(
                 CONFIG["MYSQL_HOSTNAME"],
                 CONFIG["MYSQL_USERNAME"],

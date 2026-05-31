@@ -41,6 +41,9 @@
     define('TREMSTATS_TEMPLATE', '${escapePhp cfg.web.template}');
     define('TREMSTATS_SKIN', '${escapePhp cfg.web.skin}');
     define('TREMSTATS_EPP', ${toString cfg.web.entriesPerPage});
+    define('GAMEPLAY_STATS_DIR', '${
+      escapePhp (if cfg.web.gameplayStatsDir == null then "" else cfg.web.gameplayStatsDir)
+    }');
     define('TRESHOLD_MIN_GAMES_PLAYED', ${toString cfg.web.minGamesPlayed});
     define('TRESHOLD_MAX_GAMES_PAUSED', ${toString cfg.web.maxGamesPaused});
     define('PRIVACY_LOGS', '${
@@ -243,6 +246,12 @@ in {
         type = types.int;
         default = 50;
         description = "Entries per page in paginated views.";
+      };
+
+      gameplayStatsDir = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Directory containing Format 3 gameplay stats logs named by MatchId.";
       };
 
       minGamesPlayed = mkOption {

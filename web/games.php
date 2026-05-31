@@ -16,8 +16,16 @@ if (isset($_GET['map_id'])) {
   $map_search="WHERE game_map_id = '".$map_id."'";
   $tpl->assign('map_id', $map_id);
 }
+if (!session_include_bots()) {
+  if ($map_search !== "") {
+    $map_search .= " AND";
+  } else {
+    $map_search .= "WHERE";
+  }
+  $map_search .= " game_is_empty = FALSE";
+}
 if (isset($_GET['hideempty']) and $_GET['hideempty'] == "1") {
-  if (isset($_GET['map_id'])) {
+  if ($map_search !== "") {
     $map_search.=" AND";
   } else {
     $map_search.="WHERE";

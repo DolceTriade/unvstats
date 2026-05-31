@@ -3,7 +3,7 @@
 <section>
   <header>
     <h2>Map Details for <?php echo replace_color_codes($this->map_details['map_text_name']); ?></h2>
-    <div class="headinglink"><a href="games.php?map_id=<?php echo $this->map_details['map_id'] ?>">See game list for this map</a></div>
+    <div class="headinglink"><a href="games.php?map_id=<?php echo $this->map_details['map_id'] ?>">See game list for this map</a> | <a href="<?php echo htmlspecialchars($this->include_bots_toggle_url, ENT_QUOTES); ?>"><?php echo $this->include_bots ? 'hide bots' : 'include bots'; ?></a></div>
   </header>
 
   <div class="split-table">

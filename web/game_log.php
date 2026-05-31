@@ -11,6 +11,7 @@ require_once 'core/init.inc.php';
 $game_details = $db->GetRow("SELECT game_id,
                                     game_timestamp,
                                     game_map_id,
+                                    game_match_id,
                                     game_winner,
                                     game_length
                              FROM games
@@ -29,6 +30,7 @@ $map = $db->GetRow("SELECT map_name,
 
 $says = $db->GetAll("SELECT player_name,
                             player_id,
+                            player_is_bot,
                             say_gametime,
                             say_mode,
                             say_message
@@ -38,6 +40,7 @@ $says = $db->GetAll("SELECT player_name,
                      UNION
                      SELECT 'console',
                             0,
+                            FALSE,
                             say_gametime,
                             say_mode,
                             say_message
@@ -48,10 +51,13 @@ $says = $db->GetAll("SELECT player_name,
 
 $kills = $db->GetAll("SELECT players.player_name AS victim_name,
                              players.player_id AS victim_id,
+                             players.player_is_bot AS victim_is_bot,
                              source.player_name AS killer_name,
                              source.player_id AS killer_id,
+                             source.player_is_bot AS killer_is_bot,
                              source2.player_name AS assistant_name,
                              source2.player_id AS assistant_id,
+                             source2.player_is_bot AS assistant_is_bot,
                              kill_gametime,
                              kill_type,
                              kill_assist_type,
@@ -67,6 +73,7 @@ $kills = $db->GetAll("SELECT players.player_name AS victim_name,
 
 $destructs = $db->GetAll("SELECT player_name,
                                 player_id,
+                                player_is_bot,
                                 destruct_gametime,
                                 building_name,
                                 building_icon,
@@ -83,6 +90,7 @@ $destructs = $db->GetAll("SELECT player_name,
 
 $builds = $db->GetAll("SELECT player_name,
                               player_id,
+                              player_is_bot,
                               build_gametime,
                               building_name,
                               building_icon
@@ -94,6 +102,7 @@ $builds = $db->GetAll("SELECT player_name,
 
 $decons = $db->GetAll("SELECT player_name,
                               player_id,
+                              player_is_bot,
                               decon_gametime,
                               building_name,
                               building_icon
@@ -105,8 +114,10 @@ $decons = $db->GetAll("SELECT player_name,
 
 $votes = $db->GetAll("SELECT players.player_name AS caller_name,
                              players.player_id AS caller_id,
+                             players.player_is_bot AS caller_is_bot,
                              victim.player_name AS victim_name,
                              victim.player_id AS victim_id,
+                             victim.player_is_bot AS victim_is_bot,
                              vote_gametime,
                              vote_mode,
                              vote_type,
@@ -120,6 +131,29 @@ $votes = $db->GetAll("SELECT players.player_name AS caller_name,
                         LEFT JOIN players AS victim ON vote_victim_id = victim.player_id
                         WHERE vote_game_id = ?",
                         array($_GET['game_id']));
+
+if (!session_include_bots()) {
+  $says = array_values(array_filter($says, function ($say) {
+    return empty($say['player_is_bot']);
+  }));
+  $kills = array_values(array_filter($kills, function ($kill) {
+    return empty($kill['victim_is_bot']) &&
+           empty($kill['killer_is_bot']) &&
+           empty($kill['assistant_is_bot']);
+  }));
+  $destructs = array_values(array_filter($destructs, function ($destruct) {
+    return empty($destruct['player_is_bot']);
+  }));
+  $builds = array_values(array_filter($builds, function ($build) {
+    return empty($build['player_is_bot']);
+  }));
+  $decons = array_values(array_filter($decons, function ($decon) {
+    return empty($decon['player_is_bot']);
+  }));
+  $votes = array_values(array_filter($votes, function ($vote) {
+    return empty($vote['caller_is_bot']) && empty($vote['victim_is_bot']);
+  }));
+}
 
 
 $N=1;

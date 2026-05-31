@@ -3,7 +3,7 @@
 <section>
   <header>
     <h2>Game #<?php echo $this->game_details['game_id']; ?> Log</h2>
-    <div class="headinglink"> ( <a href="game_details.php?game_id=<?php echo $this->game_details['game_id'] ?>">show game summary</a> )</div>
+    <div class="headinglink"> ( <a href="game_details.php?game_id=<?php echo $this->game_details['game_id'] ?>">show game summary</a> | <a href="<?php echo htmlspecialchars($this->include_bots_toggle_url, ENT_QUOTES); ?>"><?php echo $this->include_bots ? 'hide bots' : 'include bots'; ?></a> )</div>
   </header>
 
   <table>

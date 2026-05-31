@@ -150,6 +150,7 @@ class Parser:
     def Clear_game(self):
         self.game_id = None
         self.game_map_id = None
+        self.game_match_id = None
         self.game_timestamp = None
         self.game_alien_kills = 0
         self.game_human_kills = 0
@@ -448,6 +449,8 @@ class Parser:
             return
 
         # Check for a log match, in order of chances to occur
+        if logtype == "MatchId":
+            self.Log_MatchId(gametime, line)
         if logtype == "Die":
             self.Log_Die(gametime, line)
         elif logtype == "Construct":
@@ -703,6 +706,17 @@ class Parser:
             (self.game_timestamp, self.game_id),
         )
 
+    def Log_MatchId(self, gametime, line):
+        match_id = line.strip()
+        if len(match_id) < 1:
+            return
+
+        self.game_match_id = match_id
+        self.dbc.execute(
+            "UPDATE `games` SET `game_match_id` = %s WHERE `game_id` = %s",
+            (self.game_match_id, self.game_id),
+        )
+
     """ A game ends """
 
     def Log_Exit(self, gametime, line):
@@ -785,8 +799,9 @@ class Parser:
                 (self.game_map_id,),
             )
 
-        self.dbc.execute(
-            """UPDATE `map_stats` SET
+        if not self.game_is_empty:
+            self.dbc.execute(
+                """UPDATE `map_stats` SET
 		                        `mapstat_games` = `mapstat_games` + 1,
 		                        `mapstat_time` = `mapstat_time` + %s,
 		                        `mapstat_alien_wins` = `mapstat_alien_wins` + IF (%s = 'aliens', 1, 0),
@@ -798,19 +813,19 @@ class Parser:
 		                        `mapstat_alien_deaths` = `mapstat_alien_deaths` + %s,
 		                        `mapstat_human_deaths` = `mapstat_human_deaths` + %s
 		                  WHERE `mapstat_id` = %s""",
-            (
-                self.Gametime_seconds(self.game_exit_time),
-                self.game_exit,
-                self.game_exit,
-                self.game_exit,
-                self.game_exit,
-                self.game_alien_kills,
-                self.game_human_kills,
-                self.game_alien_deaths,
-                self.game_human_deaths,
-                self.game_map_id,
-            ),
-        )
+                (
+                    self.Gametime_seconds(self.game_exit_time),
+                    self.game_exit,
+                    self.game_exit,
+                    self.game_exit,
+                    self.game_exit,
+                    self.game_alien_kills,
+                    self.game_human_kills,
+                    self.game_alien_deaths,
+                    self.game_human_deaths,
+                    self.game_map_id,
+                ),
+            )
 
         # logging for this game is done
         self.game_id = None
@@ -843,19 +858,25 @@ class Parser:
         result = match.groups()
         player_id = result[0]
         player_ip = result[1]
-        player_qkey = result[2]
-        player_qkeyhash = self.hashqkey(player_qkey)
-
         player_is_bot = result[5] != None
         if player_is_bot:
-            player_name = '"[BOT]"'
-            player_name_uncolored = player_name
-        else:
             player_name_uncolored = self.Remove_colors(result[3])
             if result[4] != None:
                 player_name = result[4]
             else:
                 player_name = result[3]
+            player_qkey = "BOT|%s|%s" % (
+                self.game_match_id if self.game_match_id != None else self.game_id,
+                player_name_uncolored,
+            )
+        else:
+            player_qkey = result[2]
+            player_name_uncolored = self.Remove_colors(result[3])
+            if result[4] != None:
+                player_name = result[4]
+            else:
+                player_name = result[3]
+        player_qkeyhash = self.hashqkey(player_qkey)
 
         t = self.Gametime_seconds(gametime)
 
@@ -981,9 +1002,7 @@ class Parser:
             # if self.game_players.has_key(mysql_player_id):
             # 	self.Log_PlayerSingleUpdate(mysql_player_id, self.game_players[mysql_player_id])
 
-            # only delete if not a bot -- bots are handled as a single player
-            if mysql_player_id not in self.bots:
-                del self.players[player_id]
+            del self.players[player_id]
 
     """ A client renames """
 

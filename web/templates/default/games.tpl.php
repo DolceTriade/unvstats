@@ -29,6 +29,8 @@
      Sort by: <a href="games.php?order=gameid<?php echo $game_search ?>">Game ID</a> | <a href="games.php?order=kills<?php echo $game_search; ?>">Kills</a> | <a href="games.php?order=deaths<?php echo $game_search; ?>">Deaths</a> | <a href="games.php?order=length<?php echo $game_search; ?>">Length</a>
      ♢
      Show empty games: <a href="games.php?hideempty=<?php echo (isset($this->hideempty)) ? "0" : "1"; echo $game_empty; ?>"><?php echo (isset($this->hideempty)) ? "No" : "Yes"; ?></a>
+     ♢
+     Bots: <a href="<?php echo htmlspecialchars($this->include_bots_toggle_url, ENT_QUOTES); ?>"><?php echo $this->include_bots ? 'Included' : 'Excluded'; ?></a>
     </div>
   </header>
 

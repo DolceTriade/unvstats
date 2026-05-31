@@ -19,8 +19,12 @@ $config_file = getenv('UNVSTATS_WEB_CONFIG');
 if ($config_file === false || $config_file === '') {
   $config_file = dirname(__FILE__).'/config.inc.php';
 }
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 require_once $config_file;
 require_once dirname(__FILE__).'/lib.inc.php';
+set_include_bots_from_request();
 require_once dirname(__FILE__).'/graphs.inc.php';
 require_once dirname(__FILE__).'/tiny_templating.class.php';
 require_once dirname(__FILE__).'/adodb/adodb-exceptions.inc.php';
@@ -50,6 +54,8 @@ $pagelister->SetCountHandler($counthandler);
 $tpl = new tiny_templating(TREMSTATS_TEMPLATE, TREMSTATS_SKIN);
 $tpl->assign('calculation_start', $calculation_start);
 $tpl->assign('pagelister',        $pagelister);
+$tpl->assign('include_bots',      session_include_bots());
+$tpl->assign('include_bots_toggle_url', include_bots_toggle_url());
 
 $bots = $db->GetAll("SELECT `players`.`player_id` AS `player_id` FROM `players` WHERE `players`.`player_is_bot` = TRUE");
 foreach ($bots as $k => $v)

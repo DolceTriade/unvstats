@@ -60,6 +60,9 @@ define('TREMSTATS_SKIN', 'default');
 // Entries per page
 define('TREMSTATS_EPP', 50);
 
+// Directory containing Format 3 gameplay stats logs keyed by MatchId.
+define('GAMEPLAY_STATS_DIR', '');
+
 
 /**
  * Tresholds
