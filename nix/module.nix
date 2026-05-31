@@ -74,6 +74,7 @@
       with all; [
         gd
         mysqli
+        session
       ];
   };
 

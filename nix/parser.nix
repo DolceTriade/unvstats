@@ -9,6 +9,7 @@ let
   python = python3.withPackages (ps: with ps; [
     mysqlclient
     pillow
+    scipy
   ]);
 in
 stdenvNoCC.mkDerivation {
