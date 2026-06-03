@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
-    <title>Unvstats – <?php echo replace_color_codes(SERVER_NAME); ?></title>
+    <title>Unvstats – <?php echo htmlspecialchars(strip_color_codes(SERVER_NAME), ENT_QUOTES); ?></title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="Publisher" content="DASPRiD's" />
+    <link rel="icon" type="image/png" href="images/favicon.png" />
     <link rel="stylesheet" type="text/css" href="<?php echo $this->css_file(); ?>" />
 <?php
 /* site hooks */

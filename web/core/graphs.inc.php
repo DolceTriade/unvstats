@@ -275,26 +275,41 @@ EOF;
         $query = 'SELECT kill_type,
                          kill_weapon_id,
                          kill_gametime,
-                         kill_id
+                         kill_id,
+                         target.player_is_bot AS target_is_bot,
+                         source.player_is_bot AS source_is_bot,
+                         assist.player_is_bot AS assist_is_bot
                   FROM kills
                   INNER JOIN players AS target ON kill_target_player_id = target.player_id
                   LEFT JOIN players AS source ON kill_source_player_id = source.player_id
                   LEFT JOIN players AS assist ON kill_assist_player_id = assist.player_id
-                  WHERE kill_game_id = ?';
-        if (!session_include_bots()) {
-          $query .= ' AND target.player_is_bot = FALSE
-                      AND IFNULL(source.player_is_bot, FALSE) = FALSE
-                      AND IFNULL(assist.player_is_bot, FALSE) = FALSE';
-        }
-        $query .= ' ORDER BY kill_id';
+                  WHERE kill_game_id = ?
+                  ORDER BY kill_id';
 
         $stats = $db->GetAll($query, array($game_id));
 
-        $length = count($stats);
-        if (!$length)
+        if (!count($stats))
         {
             graph_emptyGraphBox($noKills);
             return;
+        }
+
+        if (!session_include_bots()) {
+          $filtered_stats = array();
+          foreach ($stats as $stat) {
+            if (!empty($stat['target_is_bot']) ||
+                !empty($stat['source_is_bot']) ||
+                !empty($stat['assist_is_bot'])) {
+              continue;
+            }
+            $filtered_stats[] = $stat;
+          }
+
+          // If the bot filter would erase all kill activity, render the full
+          // match instead of claiming the game was peaceful.
+          if (count($filtered_stats)) {
+            $stats = $filtered_stats;
+          }
         }
 
         $weapons = $db->GetAll('SELECT weapon_id,

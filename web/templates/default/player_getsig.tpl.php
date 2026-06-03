@@ -2,9 +2,9 @@
 
 <?php
  $styles = array (
-   array ( 'id' => '0', 'width' => 400, 'height' => 46 ),
-   array ( 'id' => '1', 'width' => 500, 'height' => 40 ),
-   array ( 'id' => '2', 'width' => 500, 'height' => 40 ),
+   array ( 'id' => '0', 'label' => 'Compact Card', 'width' => 400, 'height' => 46 ),
+   array ( 'id' => '1', 'label' => 'Split Panel', 'width' => 500, 'height' => 40 ),
+   array ( 'id' => '2', 'label' => 'Quote Banner', 'width' => 500, 'height' => 40 ),
  );
 ?>
 
@@ -31,7 +31,7 @@
 
     <thead>
       <tr>
-        <th colspan="2">Style <?php echo $style['id']; ?></th>
+        <th colspan="2">Style <?php echo $style['id']; ?>: <?php echo htmlspecialchars($style['label'], ENT_QUOTES); ?></th>
       </tr>
     </thead>
 

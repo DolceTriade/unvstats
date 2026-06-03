@@ -55,7 +55,9 @@ class Parser:
 
         self.RE_GAMETIME = re.compile("([0-9]+):([0-9]{2}):([0-9]{2})")
 
-        self.RE_UNCOLOR_NAME = re.compile(R"\^([0-9A-Oa-o]|#[A-Fa-f0-9]{6}|\*)")  # need to handle ^^ separately
+        self.RE_UNCOLOR_NAME = re.compile(
+            R"\^(?:[0-9A-Oa-o]|#[A-Fa-f0-9]{6}|[xX][A-Fa-f0-9]{3}(?:[A-Fa-f0-9]{3})?|\*)"
+        )  # need to handle ^^ separately
 
         # ClientConnect: ID [IP] (GUID) "NAME" "COLORNAME"
         self.RE_CONNECT = re.compile(

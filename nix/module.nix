@@ -76,6 +76,7 @@
   phpPackageDefault = pkgs.php83.buildEnv {
     extensions = {all, ...}:
       with all; [
+        ctype
         gd
         mysqli
         session

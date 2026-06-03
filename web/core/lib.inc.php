@@ -17,17 +17,27 @@ function AdoDB_Count_Handler ($query, $args) {
 
 enum ColorType {
   case SINGLE;
-  case HEX;
+  case HEX_HASH;
+  case HEX_X_SHORT;
+  case HEX_X_LONG;
 }
 
 function color_type_str($typ) {
   switch ($typ) {
     case ColorType::SINGLE:
       return 'SINGLE';
-    case ColorType::HEX:
-      return 'HEX';
+    case ColorType::HEX_HASH:
+      return 'HEX_HASH';
+    case ColorType::HEX_X_SHORT:
+      return 'HEX_X_SHORT';
+    case ColorType::HEX_X_LONG:
+      return 'HEX_X_LONG';
   }
   return 'UNKNOWN';
+}
+
+function is_hex_string($str) {
+  return preg_match('/^[A-Fa-f0-9]+$/', $str) === 1;
 }
 
 function get_color_type($str, $offs) {
@@ -35,13 +45,84 @@ function get_color_type($str, $offs) {
   if ($str[$offs] !== '^') return false;
   if ($len > $offs + 7 &&
       $str[$offs + 1] === '#' &&
-      ctype_xdigit(substr($str, $offs + 2, 6))) {
-    return ColorType::HEX;
+      is_hex_string(substr($str, $offs + 2, 6))) {
+    return ColorType::HEX_HASH;
+  }
+  if ($len > $offs + 4 &&
+      ($str[$offs + 1] === 'x' || $str[$offs + 1] === 'X') &&
+      is_hex_string(substr($str, $offs + 2, 3))) {
+    if ($len > $offs + 7 && is_hex_string(substr($str, $offs + 2, 6))) {
+      return ColorType::HEX_X_LONG;
+    }
+    return ColorType::HEX_X_SHORT;
   }
   if ($len > $offs + 1 && ord($str[$offs + 1]) >= ord('0') && ord(strtoupper($str[$offs + 1])) <= ord('O')) {
     return ColorType::SINGLE;
   }
   return false;
+}
+
+function strip_color_codes($string) {
+  $len = strlen($string);
+  $result = '';
+
+  for ($i = 0; $i < $len; $i++) {
+    if ($string[$i] !== '^') {
+      $result .= $string[$i];
+      continue;
+    }
+
+    if ($i + 1 < $len && $string[$i + 1] === '^') {
+      $result .= '^';
+      $i++;
+      continue;
+    }
+
+    $color_type = get_color_type($string, $i);
+    if ($color_type === false) {
+      $result .= '^';
+      continue;
+    }
+
+    if ($color_type === ColorType::SINGLE) {
+      $i += 1;
+    } else if ($color_type === ColorType::HEX_HASH || $color_type === ColorType::HEX_X_LONG) {
+      $i += 7;
+    } else if ($color_type === ColorType::HEX_X_SHORT) {
+      $i += 4;
+    }
+  }
+
+  return $result;
+}
+
+function get_color_style($string, $pos, $color_type) {
+  if ($color_type === ColorType::SINGLE) {
+    return array(
+      'style' => '<span class="quakecolor_'.(31 - abs(ord(strtoupper($string[$pos + 1])) - ord('O'))).'">',
+      'length' => 2,
+    );
+  }
+
+  if ($color_type === ColorType::HEX_HASH) {
+    return array(
+      'style' => '<span style="color: '.substr($string, $pos + 1, 7).';">',
+      'length' => 8,
+    );
+  }
+
+  if ($color_type === ColorType::HEX_X_LONG) {
+    return array(
+      'style' => '<span style="color: #'.substr($string, $pos + 2, 6).';">',
+      'length' => 8,
+    );
+  }
+
+  $hex = substr($string, $pos + 2, 3);
+  return array(
+    'style' => '<span style="color: #'.$hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2].';">',
+    'length' => 5,
+  );
 }
 
 function replace_color_codes ($string) {
@@ -76,14 +157,10 @@ function replace_color_codes ($string) {
       $color_open = false;
     }
 
-    if ($color_type === ColorType::SINGLE) {
-      $color_open = true;
-      $result .= '<span class="quakecolor_'.(31 - abs(ord(strtoupper($string[$pos + 1])) - ord('O'))).'">';
-      $oldpos = $pos + 2;
-    } else if ($color_type === ColorType::HEX) {
-      $result .= '<span style="color: '.substr($string, $pos+1, 7).';">';
-      $oldpos = $pos + 8;
-    }
+    $color_data = get_color_style($string, $pos, $color_type);
+    $color_open = true;
+    $result .= $color_data['style'];
+    $oldpos = $pos + $color_data['length'];
   }
 }
 
