@@ -209,6 +209,8 @@ class Reader:
 
             print(img)
             image = Image.open(str(img))
+            # JPEG cannot store alpha channels or palette-based images.
+            image = image.convert("RGB")
             image.thumbnail((256, 144), Image.BICUBIC)
             levelshot = io.BytesIO()
             image.save(levelshot, "JPEG")
