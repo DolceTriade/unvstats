@@ -361,6 +361,12 @@ in {
           ${cfg.database.package}/bin/mysql --protocol=socket -u root '${cfg.database.name}' < ${../sql/structure.sql}
           ${cfg.database.package}/bin/mysql --protocol=socket -u root '${cfg.database.name}' < ${../sql/data.sql}
         fi
+
+        # Upgrade existing map metadata before the parser reads any DPKs.
+        if [ "$(${cfg.database.package}/bin/mysql --protocol=socket -u root -N -B '${cfg.database.name}' \
+          -e "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'maps' AND CHARACTER_SET_NAME <> 'utf8mb4';")" -gt 0 ]; then
+          ${cfg.database.package}/bin/mysql --protocol=socket -u root '${cfg.database.name}' < ${../sql/upgrade_maps_utf8mb4.sql}
+        fi
       '';
     };
 

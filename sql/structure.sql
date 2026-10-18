@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS `maps` (
   `map_levelshot` longblob,
   PRIMARY KEY  (`map_id`),
   UNIQUE KEY `map_name` (`map_name`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 DROP TABLE IF EXISTS `map_stats`;
 CREATE TABLE IF NOT EXISTS `map_stats` (

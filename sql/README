@@ -16,5 +16,16 @@ now to execute the data.sql and structure.sql:
 mysql -u username -p unvstats < structure.sql
 mysql -u username -p unvstats < data.sql
 
+Existing databases: enable emoji in map names without recreating tables:
+mysql -u username -p unvstats < upgrade_maps_utf8mb4.sql
+
+Deploy the updated parser and web frontend, which use utf8mb4 connections,
+then restart the parser. The NixOS module applies this migration automatically
+for locally managed databases when unvstats-db-init runs. For an immediate
+upgrade after rebuilding, run:
+sudo systemctl restart unvstats-db-init.service unvstats-parser.service
+
+Do not import structure.sql into an existing database: it drops tables.
+
 
 

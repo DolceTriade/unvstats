@@ -225,6 +225,7 @@ class Unvstats:
                 CONFIG["MYSQL_USERNAME"],
                 CONFIG["MYSQL_PASSWORD"],
                 CONFIG["MYSQL_DATABASE"],
+                charset="utf8mb4",
             )
             self.dbc = self.db.cursor()
         except Exception as e:
