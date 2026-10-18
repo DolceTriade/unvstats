@@ -148,7 +148,7 @@ class Reader:
             if mapname == mapdir and extension != "arena":
                 self.Save_levelshot(dpk, mapname, extension)
             elif extension == "arena":
-                self.Save_mapname(dpk, mapname)
+                self.Save_mapname(dpk, mapname, dpkfile)
 
     """ Save a levelshot """
 
@@ -244,8 +244,8 @@ class Reader:
 
     """ Save a mapname """
 
-    def Save_mapname(self, dpk, mapname):
-        data = dpk.read("meta/%s/%s.arena" % (mapname, mapname))
+    def Save_mapname(self, dpk, mapname, arena_path):
+        data = dpk.read(arena_path)
 
         # Check the data
         match = self.RE_ARENA.search(data.decode())
